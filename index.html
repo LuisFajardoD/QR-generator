@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generador de Código QR</title>
+
+  <link rel="icon" type="image/x-icon" href="./imagenes/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./css/pro.css" />
+
+  <style>
+    /* Ocultar imagen por defecto cuando hay QR renderizado */
+    .qrcode:has(canvas) > img,
+    .qrcode:has(svg) > img { display: none; }
+    /* Ocultar etiqueta cuando hay QR */
+    .preview-box:has(canvas) + .preview-label,
+    .preview-box:has(svg) + .preview-label { display: none; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="card">
+      <!-- Branding -->
+      <div class="brand">
+        <img src="./imagenes/Icono.png" alt="Fajardo Dev Solutions" class="brand__icon">
+        <div class="brand__text">
+          <strong>Luis Yasmani Fajardo Durán</strong>
+          <span class="muted">Generador de Código QR</span>
+        </div>
+      </div>
+
+      <p class="muted brand__sub">Cree, personalice y descargue su QR en PNG o SVG.</p>
+
+      <div class="grid">
+        <!-- Panel de controles -->
+        <form class="panel" id="qrForm" autocomplete="off">
+          <label class="field">
+            <span>Contenido</span>
+            <input type="text" id="text" placeholder="Pegue un enlace o escriba texto" />
+          </label>
+
+          <div class="row2">
+            <label class="field">
+              <span>Color de puntos</span>
+              <input type="color" id="dotColor" value="#000000" />
+            </label>
+            <label class="field">
+              <span>Fondo del QR</span>
+              <input type="color" id="bgColor" value="#ffffff" />
+            </label>
+          </div>
+
+          <div class="row2">
+            <label class="field">
+              <span>Tamaño (px)</span>
+              <input type="range" id="size" min="200" max="1024" step="20" value="320" />
+              <small id="sizeVal">320 px</small>
+            </label>
+            <label class="field">
+              <span>Margen (px)</span>
+              <input type="range" id="margin" min="0" max="40" step="2" value="12" />
+              <small id="marginVal">12 px</small>
+            </label>
+          </div>
+
+          <div class="row2">
+            <label class="field">
+              <span>Corrección de error</span>
+              <select id="ecc">
+                <option value="L">L (7%)</option>
+                <option value="M">M (15%)</option>
+                <option value="Q" selected>Q (25%)</option>
+                <option value="H">H (30%)</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Estilo de puntos</span>
+              <select id="dotType">
+                <option value="square">Cuadrado</option>
+                <option value="dots">Puntos</option>
+                <option value="rounded">Redondeado</option>
+                <option value="extra-rounded" selected>Extra redondeado</option>
+                <option value="classy">Classy</option>
+                <option value="classy-rounded">Classy rounded</option>
+              </select>
+            </label>
+          </div>
+
+          <details class="advanced">
+            <summary>Opciones avanzadas</summary>
+            <div class="row2">
+              <label class="field">
+                <span>Esquinas (cuadros)</span>
+                <select id="cornerSquare">
+                  <option value="">— Igual que puntos —</option>
+                  <option value="square">Cuadrado</option>
+                  <option value="extra-rounded">Extra redondeado</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Esquinas (puntos)</span>
+                <select id="cornerDot">
+                  <option value="">— Igual que puntos —</option>
+                  <option value="dot">Punto</option>
+                  <option value="square">Cuadrado</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="field file">
+              <span>Logo (opcional)</span>
+              <input type="file" id="logo" accept="image/png,image/jpeg,image/svg+xml" />
+              <small class="muted">Se centra automáticamente. Tamaño relativo configurable.</small>
+            </label>
+
+            <div class="row2">
+              <label class="field">
+                <span>Tamaño del logo</span>
+                <input type="range" id="logoSize" min="0" max="100" step="5" value="60" />
+                <small id="logoSizeVal">60%</small>
+              </label>
+              <label class="field">
+                <span>Margen del logo</span>
+                <input type="range" id="logoMargin" min="0" max="40" step="2" value="0" />
+                <small id="logoMarginVal">0 px</small>
+              </label>
+            </div>
+
+            <label class="switch">
+              <input type="checkbox" id="hideBgDots" checked />
+              <span>Ocultar puntos detrás del logo</span>
+            </label>
+          </details>
+
+          <div class="actions">
+            <button type="button" id="btnGenerate" class="btn primary">Generar</button>
+            <button type="button" id="btnPng" class="btn">Descargar PNG</button>
+            <button type="button" id="btnSvg" class="btn">Descargar SVG</button>
+            <button type="button" id="btnReset" class="btn ghost">Limpiar</button>
+          </div>
+
+          <p id="alert" class="alert" hidden></p>
+        </form>
+
+        <!-- Vista previa -->
+        <div class="preview">
+          <div id="qrcode" class="qrcode preview-box">
+            <img src="./imagenes/code.png" alt="Marca del generador" style="max-width: 100%; height:auto; opacity:.65;">
+          </div>
+          <p id="previewLabel" class="muted center preview-label">Vista previa</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./js/qr-code-styling.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
